@@ -1,8 +1,46 @@
 package sorts
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
-func BubbleSort(n []int) {
+//
+//const (
+//	Bubble = iota
+//	Insertion
+//	Selection
+//	Quick
+//	Merge
+//	Shell
+//)
+
+type Sorts struct {
+	Sorts []CertainSort
+}
+
+type CertainSort struct {
+	Time       float64
+	TypeOfSort int
+}
+
+func New() *Sorts {
+	return &Sorts{
+		Sorts: []CertainSort{},
+	}
+}
+
+func (s *Sorts) CopyArr(n []int) []int { // special func to delete dependencies between func and arr
+	tmp := make([]int, len(n))
+	copy(tmp, n)
+	return tmp
+}
+
+func (s *Sorts) BubbleSort(startedArray []int) {
+	n := s.CopyArr(startedArray)
+	startTime := time.Now()
+
 	var sorted = false
 
 	for !sorted {
@@ -17,9 +55,12 @@ func BubbleSort(n []int) {
 		}
 	}
 
+	fmt.Println(startedArray, time.Since(startTime).Seconds(), n)
 }
 
-func InsertionSort(n []int) {
+func (s *Sorts) InsertionSort(startedArray []int) {
+	n := s.CopyArr(startedArray)
+
 	var i = 1
 	for i < len(n) {
 		var j = i
@@ -31,7 +72,9 @@ func InsertionSort(n []int) {
 	}
 }
 
-func SelectionSort(n []int) {
+func (s *Sorts) SelectionSort(startedArray []int) {
+	n := s.CopyArr(startedArray)
+
 	i := 1
 
 	for i < len(n)-1 {
@@ -56,7 +99,9 @@ func SelectionSort(n []int) {
 
 }
 
-func Quicksort(a []int) []int {
+func (s *Sorts) Quicksort(startedArray []int) []int {
+	a := s.CopyArr(startedArray)
+
 	if len(a) < 2 {
 		return a
 	}
@@ -76,19 +121,21 @@ func Quicksort(a []int) []int {
 
 	a[left], a[right] = a[right], a[left] // change sides of arr by place
 
-	Quicksort(a[:left])   // recursion for elements staying before left index
-	Quicksort(a[left+1:]) // recursion for elements staying after left index
+	s.Quicksort(a[:left])   // recursion for elements staying before left index
+	s.Quicksort(a[left+1:]) // recursion for elements staying after left index
 
 	return a
 }
 
-func MergeSort(slice []int) []int {
+func (s *Sorts) MergeSort(startedArray []int) []int {
+	slice := s.CopyArr(startedArray)
+
 	if len(slice) < 2 {
 		return slice
 	}
 	mid := (len(slice)) / 2 // get middle part of array
 
-	return MergeArrays(MergeSort(slice[:mid]), MergeSort(slice[mid:])) // we just merge two part of array: before and after middle index
+	return MergeArrays(s.MergeSort(slice[:mid]), s.MergeSort(slice[mid:])) // we just merge two part of array: before and after middle index
 }
 
 func MergeArrays(left []int, right []int) []int {
@@ -113,7 +160,9 @@ func MergeArrays(left []int, right []int) []int {
 	return result
 }
 
-func ShellSort(arr []int) []int {
+func (s *Sorts) ShellSort(startedArray []int) []int {
+	arr := s.CopyArr(startedArray)
+
 	gap := len(arr) / 2
 
 	for gap > 0 {

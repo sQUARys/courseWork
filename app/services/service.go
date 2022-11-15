@@ -12,12 +12,31 @@ import (
 
 type Service struct {
 	Numbers []int
+	Sorts   Sorts
 }
 
-func New() *Service {
+type Sorts interface {
+	BubbleSort([]int)
+	InsertionSort([]int)
+	SelectionSort([]int)
+	Quicksort([]int) []int
+	MergeSort([]int) []int
+	ShellSort([]int) []int
+	CopyArr([]int) []int
+}
+
+func New(s Sorts) *Service {
 	return &Service{
 		Numbers: []int{},
+		Sorts:   s,
 	}
+}
+
+func (s *Service) StartSorting() {
+	startedArray := s.Numbers
+
+	s.Sorts.BubbleSort(startedArray)
+
 }
 
 func (s *Service) FillByRand(n int) {
