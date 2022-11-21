@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -19,9 +20,9 @@ type Sorts interface {
 	BubbleSort([]int)
 	InsertionSort([]int)
 	SelectionSort([]int)
-	Quicksort([]int) []int
-	MergeSort([]int) []int
-	ShellSort([]int) []int
+	Quicksort([]int)
+	MergeSort([]int)
+	ShellSort([]int)
 	CopyArr([]int) []int
 }
 
@@ -32,11 +33,28 @@ func New(s Sorts) *Service {
 	}
 }
 
+func (s *Service) SetArrayByUserChoice(choice interface{}) {
+	switch choice.(type) {
+	case string:
+		s.FillFromFile(choice.(string))
+	case int:
+		s.FillByRand(choice.(int))
+	}
+	s.StartSorting()
+}
+
 func (s *Service) StartSorting() {
+
 	startedArray := s.Numbers
+	fmt.Println("Started array: ", startedArray)
 
 	s.Sorts.BubbleSort(startedArray)
-
+	s.Sorts.SelectionSort(startedArray)
+	s.Sorts.InsertionSort(startedArray)
+	s.Sorts.Quicksort(startedArray)
+	s.Sorts.MergeSort(startedArray)
+	s.Sorts.ShellSort(startedArray)
+	fmt.Println(s.Sorts)
 }
 
 func (s *Service) FillByRand(n int) {

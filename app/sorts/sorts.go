@@ -1,20 +1,18 @@
 package sorts
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
 
-//
-//const (
-//	Bubble = iota
-//	Insertion
-//	Selection
-//	Quick
-//	Merge
-//	Shell
-//)
+const (
+	Bubble = iota
+	Insertion
+	Selection
+	Quick
+	Merge
+	Shell
+)
 
 type Sorts struct {
 	Sorts []CertainSort
@@ -38,7 +36,8 @@ func (s *Sorts) CopyArr(n []int) []int { // special func to delete dependencies 
 }
 
 func (s *Sorts) BubbleSort(startedArray []int) {
-	n := s.CopyArr(startedArray)
+	arrayForSort := s.CopyArr(startedArray) // array for sort
+
 	startTime := time.Now()
 
 	var sorted = false
@@ -46,60 +45,78 @@ func (s *Sorts) BubbleSort(startedArray []int) {
 	for !sorted {
 		sorted = true
 		i := 0
-		for i < len(n)-1 {
-			if n[i] > n[i+1] {
-				n[i], n[i+1] = n[i+1], n[i] //swap two elements
-				sorted = false              // arr not sorted
+		for i < len(arrayForSort)-1 {
+			if arrayForSort[i] > arrayForSort[i+1] {
+				arrayForSort[i], arrayForSort[i+1] = arrayForSort[i+1], arrayForSort[i] //swap two elements
+				sorted = false                                                          // arr not sorted
 			}
 			i++ // add index
 		}
 	}
 
-	fmt.Println(startedArray, time.Since(startTime).Seconds(), n)
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Bubble}
+	s.Sorts = append(s.Sorts, result)
 }
 
 func (s *Sorts) InsertionSort(startedArray []int) {
-	n := s.CopyArr(startedArray)
+	arrayForSort := s.CopyArr(startedArray)
+
+	startTime := time.Now()
 
 	var i = 1
-	for i < len(n) {
+	for i < len(arrayForSort) {
 		var j = i
-		for j >= 1 && n[j] < n[j-1] { // shift the value until it is more
-			n[j], n[j-1] = n[j-1], n[j] // swap two elements
-			j--                         //reducing the index for the previous element
+		for j >= 1 && arrayForSort[j] < arrayForSort[j-1] { // shift the value until it is more
+			arrayForSort[j], arrayForSort[j-1] = arrayForSort[j-1], arrayForSort[j] // swap two elements
+			j--                                                                     //reducing the index for the previous element
 		}
 		i++
 	}
+
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Insertion}
+	s.Sorts = append(s.Sorts, result)
 }
 
 func (s *Sorts) SelectionSort(startedArray []int) {
-	n := s.CopyArr(startedArray)
+	arrayForSort := s.CopyArr(startedArray)
+
+	startTime := time.Now()
 
 	i := 1
 
-	for i < len(n)-1 {
+	for i < len(arrayForSort)-1 {
 		j := i + 1
 		minIndex := i
 
-		if j < len(n) { // find a min value
-			if n[j] < n[minIndex] {
+		if j < len(arrayForSort) { // find a min value
+			if arrayForSort[j] < arrayForSort[minIndex] {
 				minIndex = j
 			}
 			j++
 		}
 
 		if minIndex != i { // just start to swap values to the beginning of array
-			var temp = n[i]
-			n[i] = n[minIndex]
-			n[minIndex] = temp
+			var temp = arrayForSort[i]
+			arrayForSort[i] = arrayForSort[minIndex]
+			arrayForSort[minIndex] = temp
 		}
 
 		i++
 	}
 
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Selection}
+	s.Sorts = append(s.Sorts, result)
+
 }
 
-func (s *Sorts) Quicksort(startedArray []int) []int {
+func (s *Sorts) Quicksort(startedArray []int) {
+	startTime := time.Now()
+	s.QuickSortRecursive(startedArray)
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Quick}
+	s.Sorts = append(s.Sorts, result)
+}
+
+func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
 	a := s.CopyArr(startedArray)
 
 	if len(a) < 2 {
@@ -121,13 +138,20 @@ func (s *Sorts) Quicksort(startedArray []int) []int {
 
 	a[left], a[right] = a[right], a[left] // change sides of arr by place
 
-	s.Quicksort(a[:left])   // recursion for elements staying before left index
-	s.Quicksort(a[left+1:]) // recursion for elements staying after left index
+	s.QuickSortRecursive(a[:left])   // recursion for elements staying before left index
+	s.QuickSortRecursive(a[left+1:]) // recursion for elements staying after left index
 
 	return a
 }
 
-func (s *Sorts) MergeSort(startedArray []int) []int {
+func (s *Sorts) MergeSort(startedArray []int) {
+	startTime := time.Now()
+	s.MergeSortRecursive(startedArray)
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Merge}
+	s.Sorts = append(s.Sorts, result)
+}
+
+func (s *Sorts) MergeSortRecursive(startedArray []int) []int {
 	slice := s.CopyArr(startedArray)
 
 	if len(slice) < 2 {
@@ -135,7 +159,7 @@ func (s *Sorts) MergeSort(startedArray []int) []int {
 	}
 	mid := (len(slice)) / 2 // get middle part of array
 
-	return MergeArrays(s.MergeSort(slice[:mid]), s.MergeSort(slice[mid:])) // we just merge two part of array: before and after middle index
+	return MergeArrays(s.MergeSortRecursive(slice[:mid]), s.MergeSortRecursive(slice[mid:])) // we just merge two part of array: before and after middle index
 }
 
 func MergeArrays(left []int, right []int) []int {
@@ -160,7 +184,14 @@ func MergeArrays(left []int, right []int) []int {
 	return result
 }
 
-func (s *Sorts) ShellSort(startedArray []int) []int {
+func (s *Sorts) ShellSort(startedArray []int) {
+	startTime := time.Now()
+	s.ShellSortRecursive(startedArray)
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Shell}
+	s.Sorts = append(s.Sorts, result)
+}
+
+func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 	arr := s.CopyArr(startedArray)
 
 	gap := len(arr) / 2
