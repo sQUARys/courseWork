@@ -1,3 +1,4 @@
+
 <h1>Contact</h1>
 <form action="/sorts" method="POST" novalidate>
     <div>
@@ -8,6 +9,8 @@
         <p><label>Если вы хотите, рассмотреть сортировки на массиве из файла. Введите название файла из папки files проекта:</label></p>
         <p><input type="file array" name="filenameArr" ></p>
     </div>
+    <input type="checkbox" id="quick" name="checkbox"value="Quick">
+            <label for="quick"> Quick</label><br>
     <ul>
         {{ with .TimesOfSorts }}
         {{ range . }}
@@ -18,12 +21,13 @@
         {{ end }}
         {{ end }}
     </ul>
+
     <div>
         <input type="submit" value="Send message">
     </div>
     <strong>Started Array : {{.StartedArray}}</strong>
-</form>
 
+</form>
 
 
 <!--    <div>-->

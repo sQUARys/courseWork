@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"html"
 	"html/template"
 	"log"
 	"net/http"
@@ -45,6 +47,8 @@ func New(service service) *Controller {
 }
 
 func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	//здесь будет еще валидация
 
 	var input interface{}
@@ -61,23 +65,30 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	choicesOfSorts := r.PostForm["checkbox"]
-	choicesOfSorts = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell"}
 	ctr.Service.SetArrayByUserChoice(w, input, choicesOfSorts)
 
 	dataJSON := ctr.Service.GetSortsResultJSON()
 	var dataStruct map[string][]TimeOfSort
-	json.Unmarshal([]byte(dataJSON), &dataStruct)
+	err := json.Unmarshal([]byte(dataJSON), &dataStruct)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	result := Times{
 		TimesOfSorts: dataStruct["Sorts"],
 		StartedArray: ctr.Service.GetStartedArray(),
 	}
 
-	err := WriteHTML(w, "app/templates/choiceMenu.html", result)
+	if len(result.TimesOfSorts) == 0 {
+		return
+	}
+	fmt.Println(result)
+	err = WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", result)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
 	}
-	//
+
 	//CreateGraph("bar.html", result, choicesOfSorts)
 	//err = WriteHTML(w, "bar.html", nil)
 	//if err != nil {
@@ -89,8 +100,10 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctr *Controller) GetSorts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	//AllAvailableSorts{[]string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell"}}
-	err := WriteHTML(w, "app/templates/choiceMenu.html", nil)
+	err := WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", nil)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
 	}
@@ -123,16 +136,22 @@ func CreateGraph(path string, times Times, choicesOfSorts []string) {
 	_ = bar.Render(f)
 }
 
-func WriteHTML(w http.ResponseWriter, filename string, data interface{}) error {
-	tmpl, err := template.ParseFiles(filename)
+func WriteHTML(w http.ResponseWriter, name string, filename string, data interface{}) error {
+	tpl, err := template.New(name).ParseFiles(filename)
 	if err != nil {
-		http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
 		return err
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
-		http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
+	buf := &bytes.Buffer{}
+	err = tpl.Execute(buf, data)
+	if err != nil {
 		return err
 	}
+
+	_, err = fmt.Fprintln(w, html.UnescapeString(buf.String()))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
