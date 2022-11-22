@@ -21,19 +21,25 @@
     <div>
         <input type="submit" value="Send message">
     </div>
+    <strong>Started Array : {{.StartedArray}}</strong>
 </form>
 
 
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <div>-->
-<!--        <a href="http://localhost:8081/sorts/">I want to set rand value of arr</a>-->
-<!--        <p><input type="sizeArr" name="size of random arr" value="{{ .randomSize }}"></p>-->
-<!--    </div>-->
-<!--</head>-->
-<!--<body>-->
 
-<!--</body>-->
-<!--</html>-->
+<!--    <div>-->
+<!--        {{ with .AllAvailableSorts }}-->
+<!--        {{ range . }}-->
+<!--        <li>-->
+<!--            <input type="checkbox"  name="checkbox" value={{.}} />-->
+<!--            <label>{{.}}</label><br>-->
+<!--        </li>-->
+<!--        {{ end }}-->
+<!--        {{ end }}-->
+
+<!--        <input type="checkbox" id="quick" name="checkbox"value="Quick">-->
+<!--        <label for="quick"> Quick</label><br>-->
+<!--        <input type="checkbox" id="bubble" name="checkbox"value="Bubble">-->
+<!--        <label for="bubble"> Bubble</label><br>-->
+<!--            <input type="checkbox" name="check" value="3" />-->
+<!--            <input type="checkbox" name="check" value="4" />-->
+<!--    </div>-->

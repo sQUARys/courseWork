@@ -21,7 +21,7 @@ func main() {
 	server := http.Server{
 		ReadTimeout:  50 * time.Second,
 		WriteTimeout: 50 * time.Second,
-		Addr:         ":8081",
+		Addr:         ":8080",
 		Handler:      router.Router,
 	}
 
@@ -30,11 +30,4 @@ func main() {
 		log.Println("Error in main : ", err)
 		return
 	}
-	//service.FillByRand(10)
-	//service.StartSorting()
-
-	//fmt.Println(service.Numbers)
-	//service.FillFromFile("test.txt")
-	//fmt.Println(service.Numbers)
-
 }

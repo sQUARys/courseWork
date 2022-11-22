@@ -5,22 +5,13 @@ import (
 	"time"
 )
 
-const (
-	Bubble = iota
-	Insertion
-	Selection
-	Quick
-	Merge
-	Shell
-)
-
 type Sorts struct {
 	Sorts []CertainSort
 }
 
 type CertainSort struct {
 	Time       float64 `json:"time"`
-	TypeOfSort int     `json:"type"`
+	TypeOfSort string  `json:"type"`
 }
 
 func New() *Sorts {
@@ -54,7 +45,7 @@ func (s *Sorts) BubbleSort(startedArray []int) {
 		}
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Bubble}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Bubble"}
 	s.Sorts = append(s.Sorts, result)
 }
 
@@ -73,7 +64,7 @@ func (s *Sorts) InsertionSort(startedArray []int) {
 		i++
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Insertion}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Insertion"}
 	s.Sorts = append(s.Sorts, result)
 }
 
@@ -104,7 +95,7 @@ func (s *Sorts) SelectionSort(startedArray []int) {
 		i++
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Selection}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Selection"}
 	s.Sorts = append(s.Sorts, result)
 
 }
@@ -112,7 +103,7 @@ func (s *Sorts) SelectionSort(startedArray []int) {
 func (s *Sorts) Quicksort(startedArray []int) {
 	startTime := time.Now()
 	s.QuickSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Quick}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Quick"}
 	s.Sorts = append(s.Sorts, result)
 }
 
@@ -147,7 +138,7 @@ func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
 func (s *Sorts) MergeSort(startedArray []int) {
 	startTime := time.Now()
 	s.MergeSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Merge}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Merge"}
 	s.Sorts = append(s.Sorts, result)
 }
 
@@ -187,7 +178,7 @@ func MergeArrays(left []int, right []int) []int {
 func (s *Sorts) ShellSort(startedArray []int) {
 	startTime := time.Now()
 	s.ShellSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: Shell}
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Shell"}
 	s.Sorts = append(s.Sorts, result)
 }
 
