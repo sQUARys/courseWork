@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -44,9 +44,7 @@ func (s *Service) SetArrayByUserChoice(choice interface{}) {
 }
 
 func (s *Service) StartSorting() {
-
 	startedArray := s.Numbers
-	fmt.Println("Started array: ", startedArray)
 
 	s.Sorts.BubbleSort(startedArray)
 	s.Sorts.SelectionSort(startedArray)
@@ -54,7 +52,6 @@ func (s *Service) StartSorting() {
 	s.Sorts.Quicksort(startedArray)
 	s.Sorts.MergeSort(startedArray)
 	s.Sorts.ShellSort(startedArray)
-	fmt.Println(s.Sorts)
 }
 
 func (s *Service) FillByRand(n int) {
@@ -91,4 +88,9 @@ func (s *Service) FillFromFile(path string) error {
 	}
 
 	return nil
+}
+
+func (s *Service) GetSortsResultJSON() string {
+	data, _ := json.Marshal(s.Sorts)
+	return string(data)
 }

@@ -19,8 +19,8 @@ type Sorts struct {
 }
 
 type CertainSort struct {
-	Time       float64
-	TypeOfSort int
+	Time       float64 `json:"time"`
+	TypeOfSort int     `json:"type"`
 }
 
 func New() *Sorts {

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -14,11 +15,21 @@ type Controller struct {
 	sync.RWMutex
 }
 
+type Times struct {
+	TimesOfSorts []TimeOfSort
+}
+
+type TimeOfSort struct {
+	SortType     int     `json:"type"`
+	TimeDuration float64 `json:"time"`
+}
+
 type service interface {
 	StartSorting()
 	FillByRand(n int)
 	FillFromFile(path string) error
 	SetArrayByUserChoice(choice interface{})
+	GetSortsResultJSON() string
 }
 
 func New(service service) *Controller {
@@ -41,10 +52,19 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 		ctr.Service.SetArrayByUserChoice(size)
 	}
 
+	dataJSON := ctr.Service.GetSortsResultJSON()
+	var dataStruct map[string][]TimeOfSort
+	json.Unmarshal([]byte(dataJSON), &dataStruct)
+
+	result := Times{dataStruct["Sorts"]}
+	fmt.Println(result)
+	err := WriteHTML(w, "app/templates/choiceMenu.html", result)
+	if err != nil {
+		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+	}
 }
 
 func (ctr *Controller) GetSorts(w http.ResponseWriter, r *http.Request) {
-
 	err := WriteHTML(w, "app/templates/choiceMenu.html", nil)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error in  writing html. %w", err))

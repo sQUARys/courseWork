@@ -8,6 +8,16 @@
         <p><label>Если вы хотите, рассмотреть сортировки на массиве из файла. Введите название файла из папки files проекта:</label></p>
         <p><input type="file array" name="filenameArr" ></p>
     </div>
+    <ul>
+        {{ with .TimesOfSorts }}
+        {{ range . }}
+        <li>
+            <h3>Type of sort : {{ .SortType }}</h3>
+            time of sort : {{.TimeDuration}}
+        </li>
+        {{ end }}
+        {{ end }}
+    </ul>
     <div>
         <input type="submit" value="Send message">
     </div>
