@@ -14,10 +14,16 @@ type CertainSort struct {
 	TypeOfSort string  `json:"type"`
 }
 
+var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell"}
+
 func New() *Sorts {
 	return &Sorts{
 		Sorts: []CertainSort{},
 	}
+}
+
+func (s *Sorts) GetAvailableSorts() []string {
+	return AvailableSort
 }
 
 func (s *Sorts) CopyArr(n []int) []int { // special func to delete dependencies between func and arr
@@ -26,7 +32,7 @@ func (s *Sorts) CopyArr(n []int) []int { // special func to delete dependencies 
 	return tmp
 }
 
-func (s *Sorts) BubbleSort(startedArray []int) {
+func (s *Sorts) BubbleSort(startedArray []int) []int {
 	arrayForSort := s.CopyArr(startedArray) // array for sort
 
 	startTime := time.Now()
@@ -47,9 +53,10 @@ func (s *Sorts) BubbleSort(startedArray []int) {
 
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Bubble"}
 	s.Sorts = append(s.Sorts, result)
+	return arrayForSort
 }
 
-func (s *Sorts) InsertionSort(startedArray []int) {
+func (s *Sorts) InsertionSort(startedArray []int) []int {
 	arrayForSort := s.CopyArr(startedArray)
 
 	startTime := time.Now()
@@ -66,9 +73,10 @@ func (s *Sorts) InsertionSort(startedArray []int) {
 
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Insertion"}
 	s.Sorts = append(s.Sorts, result)
+	return arrayForSort
 }
 
-func (s *Sorts) SelectionSort(startedArray []int) {
+func (s *Sorts) SelectionSort(startedArray []int) []int {
 	arrayForSort := s.CopyArr(startedArray)
 
 	startTime := time.Now()
@@ -97,14 +105,15 @@ func (s *Sorts) SelectionSort(startedArray []int) {
 
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Selection"}
 	s.Sorts = append(s.Sorts, result)
-
+	return arrayForSort
 }
 
-func (s *Sorts) Quicksort(startedArray []int) {
+func (s *Sorts) Quicksort(startedArray []int) []int {
 	startTime := time.Now()
-	s.QuickSortRecursive(startedArray)
+	sortedArray := s.QuickSortRecursive(startedArray)
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Quick"}
 	s.Sorts = append(s.Sorts, result)
+	return sortedArray
 }
 
 func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
@@ -135,11 +144,12 @@ func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
 	return a
 }
 
-func (s *Sorts) MergeSort(startedArray []int) {
+func (s *Sorts) MergeSort(startedArray []int) []int {
 	startTime := time.Now()
-	s.MergeSortRecursive(startedArray)
+	sortedArray := s.MergeSortRecursive(startedArray)
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Merge"}
 	s.Sorts = append(s.Sorts, result)
+	return sortedArray
 }
 
 func (s *Sorts) MergeSortRecursive(startedArray []int) []int {
@@ -175,11 +185,12 @@ func MergeArrays(left []int, right []int) []int {
 	return result
 }
 
-func (s *Sorts) ShellSort(startedArray []int) {
+func (s *Sorts) ShellSort(startedArray []int) []int {
 	startTime := time.Now()
-	s.ShellSortRecursive(startedArray)
+	sortedArray := s.ShellSortRecursive(startedArray)
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Shell"}
 	s.Sorts = append(s.Sorts, result)
+	return sortedArray
 }
 
 func (s *Sorts) ShellSortRecursive(startedArray []int) []int {

@@ -1,49 +1,44 @@
 
-<h1>Contact</h1>
-<form action="/sorts" method="POST" novalidate>
-    <div>
-        <p><label>Если вы хотите, рассмотреть сортировки на массиве случайных чисел. Введите размер массива:</label></p>
-        <p><input type="rand array" name="sizeRandArr" ></p>
-    </div>
-    <div>
-        <p><label>Если вы хотите, рассмотреть сортировки на массиве из файла. Введите название файла из папки files проекта:</label></p>
-        <p><input type="file array" name="filenameArr" ></p>
-    </div>
-    <input type="checkbox" id="quick" name="checkbox"value="Quick">
-            <label for="quick"> Quick</label><br>
-    <ul>
-        {{ with .TimesOfSorts }}
+<div>
+    <h1>Contact</h1>
+    <form action="/sorts" method="POST" novalidate>
+        <div>
+            <p><label>Если вы хотите, рассмотреть сортировки на массиве случайных чисел. Введите размер массива:</label></p>
+            <p><input type="rand array" name="sizeRandArr" ></p>
+        </div>
+        <div>
+            <p><label>Если вы хотите, рассмотреть сортировки на массиве из файла. Введите название файла из папки files проекта:</label></p>
+            <p><input type="file array" name="filenameArr" ></p>
+        </div>
+
+        {{ with .AvailableSorts }}
         {{ range . }}
-        <li>
-            <h3>Type of sort : {{ .SortType }}</h3>
-            time of sort : {{.TimeDuration}}
-        </li>
+        <div>
+            <input type="checkbox"  name="checkbox" value={{.}} />
+            <label>{{.}}</label><br>
+        </div>
         {{ end }}
         {{ end }}
-    </ul>
 
-    <div>
-        <input type="submit" value="Send message">
-    </div>
-    <strong>Started Array : {{.StartedArray}}</strong>
+        <div>
+            <input type="submit" value="Send message">
+        </div>
 
-</form>
+        {{ with .TimesOfSorts }}
+                    {{ range . }}
+                    <div>
+                        <h3>Type of sort : {{ .SortType }}</h3>
+                        time of sort : {{.TimeDuration}}
+                    </div>
+                    {{ end }}
+        {{ end }}
 
+        <hr>
+        <h3>Started Array : {{.StartedArray}}</h3>
+        <hr>
+        <h3>Sorted Array : {{.SortedArray}}</h3>
+        <hr>
+    </form>
 
-<!--    <div>-->
-<!--        {{ with .AllAvailableSorts }}-->
-<!--        {{ range . }}-->
-<!--        <li>-->
-<!--            <input type="checkbox"  name="checkbox" value={{.}} />-->
-<!--            <label>{{.}}</label><br>-->
-<!--        </li>-->
-<!--        {{ end }}-->
-<!--        {{ end }}-->
+</div>
 
-<!--        <input type="checkbox" id="quick" name="checkbox"value="Quick">-->
-<!--        <label for="quick"> Quick</label><br>-->
-<!--        <input type="checkbox" id="bubble" name="checkbox"value="Bubble">-->
-<!--        <label for="bubble"> Bubble</label><br>-->
-<!--            <input type="checkbox" name="check" value="3" />-->
-<!--            <input type="checkbox" name="check" value="4" />-->
-<!--    </div>-->

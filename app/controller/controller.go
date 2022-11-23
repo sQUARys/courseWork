@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"html"
 	"html/template"
 	"log"
 	"net/http"
@@ -21,8 +19,10 @@ type Controller struct {
 }
 
 type Times struct {
-	StartedArray []int
-	TimesOfSorts []TimeOfSort
+	AvailableSorts []string
+	StartedArray   []int
+	SortedArray    []int
+	TimesOfSorts   []TimeOfSort
 }
 
 type TimeOfSort struct {
@@ -38,6 +38,8 @@ type service interface {
 	GetSortsResultJSON() string
 	GetStartedArray() []int
 	CleanService()
+	GetAvailableSorts() []string
+	GetSortedArray() []int
 }
 
 func New(service service) *Controller {
@@ -47,7 +49,7 @@ func New(service service) *Controller {
 }
 
 func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	//здесь будет еще валидация
 
@@ -76,24 +78,22 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := Times{
-		TimesOfSorts: dataStruct["Sorts"],
-		StartedArray: ctr.Service.GetStartedArray(),
+		StartedArray:   ctr.Service.GetStartedArray(),
+		AvailableSorts: ctr.Service.GetAvailableSorts(),
+		SortedArray:    ctr.Service.GetSortedArray(),
+		TimesOfSorts:   dataStruct["Sorts"],
 	}
 
-	if len(result.TimesOfSorts) == 0 {
-		return
-	}
-	fmt.Println(result)
 	err = WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", result)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
 	}
 
-	//CreateGraph("bar.html", result, choicesOfSorts)
-	//err = WriteHTML(w, "bar.html", nil)
-	//if err != nil {
-	//	log.Println(fmt.Sprintf("Error in  writing html. %w", err))
-	//}
+	CreateGraph("bar.html", result, choicesOfSorts)
+	err = WriteHTML(w, "bar.html", "bar.html", nil)
+	if err != nil {
+		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+	}
 
 	ctr.Service.CleanService()
 
@@ -102,8 +102,10 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 func (ctr *Controller) GetSorts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	//AllAvailableSorts{[]string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell"}}
-	err := WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", nil)
+	err := WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", Times{
+		AvailableSorts: ctr.Service.GetAvailableSorts(),
+	})
+
 	if err != nil {
 		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
 	}
@@ -137,21 +139,14 @@ func CreateGraph(path string, times Times, choicesOfSorts []string) {
 }
 
 func WriteHTML(w http.ResponseWriter, name string, filename string, data interface{}) error {
-	tpl, err := template.New(name).ParseFiles(filename)
+	tmpl, err := template.ParseFiles(filename)
 	if err != nil {
+		//http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
 		return err
 	}
-
-	buf := &bytes.Buffer{}
-	err = tpl.Execute(buf, data)
-	if err != nil {
+	if err = tmpl.Execute(w, data); err != nil {
+		//http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
 		return err
 	}
-
-	_, err = fmt.Fprintln(w, html.UnescapeString(buf.String()))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -16,19 +16,21 @@ import (
 )
 
 type Service struct {
-	Numbers []int
-	Sorts   Sorts
+	Numbers       []int
+	SortedNumbers []int
+	Sorts         Sorts
 	*sync.RWMutex
 }
 
 type Sorts interface {
-	BubbleSort([]int)
-	InsertionSort([]int)
-	SelectionSort([]int)
-	Quicksort([]int)
-	MergeSort([]int)
-	ShellSort([]int)
+	BubbleSort([]int) []int
+	InsertionSort([]int) []int
+	SelectionSort([]int) []int
+	Quicksort([]int) []int
+	MergeSort([]int) []int
+	ShellSort([]int) []int
 	CopyArr([]int) []int
+	GetAvailableSorts() []string
 }
 
 func New(s Sorts) *Service {
@@ -83,17 +85,35 @@ loop:
 		case v := <-sortsCh:
 			switch v {
 			case "Bubble":
-				s.Sorts.BubbleSort(startedArray)
+				sortedArray := s.Sorts.BubbleSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			case "Quick":
-				s.Sorts.Quicksort(startedArray)
+				sortedArray := s.Sorts.Quicksort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			case "Insertion":
-				s.Sorts.InsertionSort(startedArray)
+				sortedArray := s.Sorts.InsertionSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			case "Selection":
-				s.Sorts.SelectionSort(startedArray)
+				sortedArray := s.Sorts.SelectionSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			case "Merge":
-				s.Sorts.MergeSort(startedArray)
+				sortedArray := s.Sorts.MergeSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			case "Shell":
-				s.Sorts.ShellSort(startedArray)
+				sortedArray := s.Sorts.ShellSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
 			}
 			fmt.Println(fmt.Sprintf("%s sorts done succesful", v))
 		case <-doneCh:
@@ -146,6 +166,14 @@ func (s *Service) GetSortsResultJSON() string {
 
 func (s *Service) GetStartedArray() []int {
 	return s.Numbers
+}
+
+func (s *Service) GetAvailableSorts() []string {
+	return s.Sorts.GetAvailableSorts()
+}
+
+func (s *Service) GetSortedArray() []int {
+	return s.SortedNumbers
 }
 
 func (s *Service) CleanService() {

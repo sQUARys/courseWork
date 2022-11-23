@@ -19,11 +19,6 @@ func New(controller *controller.Controller) *Router {
 }
 
 func (r *Router) SetRoutes() {
-	//r.Router.HandleFunc("/mail/{email}", r.Controller.MailHandler).Methods("Post")
-	//
 	r.Router.HandleFunc("/sorts", r.Controller.GetSorts).Methods("Get")
 	r.Router.HandleFunc("/sorts", r.Controller.SendUserChoice).Methods("Post")
-
-	//r.Router.HandleFunc("/mail/got-emails/{email}", r.Controller.GetMailsByEmail).Methods("Get")
-	//r.Router.HandleFunc("/mail/message/{message-id:[0-9]+}", r.Controller.GetMailById).Methods("Get")
 }
