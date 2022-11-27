@@ -15,10 +15,10 @@ import (
 )
 
 type Service struct {
+	Sorts Sorts
+	*sync.RWMutex
 	Numbers       []int
 	SortedNumbers []int
-	Sorts         Sorts
-	*sync.RWMutex
 }
 
 type Sorts interface {
@@ -30,6 +30,7 @@ type Sorts interface {
 	ShellSort([]int) []int
 	CopyArr([]int) []int
 	GetAvailableSorts() []string
+	IntroSort(startedArray []int) []int
 }
 
 func New(s Sorts) *Service {
@@ -118,6 +119,11 @@ loop:
 				}
 			case "Shell":
 				sortedArray := s.Sorts.ShellSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
+			case "Intro":
+				sortedArray := s.Sorts.IntroSort(startedArray)
 				if len(s.SortedNumbers) == 0 {
 					s.SortedNumbers = sortedArray
 				}

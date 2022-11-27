@@ -19,10 +19,10 @@ type Controller struct {
 }
 
 type Times struct {
+	TimesOfSorts   []TimeOfSort
 	AvailableSorts []string
 	StartedArray   []int
 	SortedArray    []int
-	TimesOfSorts   []TimeOfSort
 }
 
 type TimeOfSort struct {
@@ -31,8 +31,8 @@ type TimeOfSort struct {
 }
 
 type Error struct {
-	Status int
 	Err    string
+	Status int
 }
 
 type service interface {

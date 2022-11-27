@@ -1,6 +1,8 @@
 package sorts
 
 import (
+	"github.com/dorin131/go-data-structures/minheap"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -14,7 +16,7 @@ type CertainSort struct {
 	TypeOfSort string  `json:"type"`
 }
 
-var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell"}
+var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell", "Intro"}
 
 func New() *Sorts {
 	return &Sorts{
@@ -61,14 +63,14 @@ func (s *Sorts) InsertionSort(startedArray []int) []int {
 
 	startTime := time.Now()
 
-	var i = 1
-	for i < len(arrayForSort) {
-		var j = i
-		for j >= 1 && arrayForSort[j] < arrayForSort[j-1] { // shift the value until it is more
-			arrayForSort[j], arrayForSort[j-1] = arrayForSort[j-1], arrayForSort[j] // swap two elements
-			j--                                                                     //reducing the index for the previous element
+	for i := 1; i < len(arrayForSort); i++ {
+		key := arrayForSort[i]
+		j := i - 1
+		for j >= 0 && arrayForSort[j] > key {
+			arrayForSort[j+1] = arrayForSort[j]
+			j--
 		}
-		i++
+		arrayForSort[j+1] = key
 	}
 
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Insertion"}
@@ -216,4 +218,97 @@ func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 		gap /= 2
 	}
 	return arr
+}
+
+func (s *Sorts) IntroSort(startedArray []int) []int {
+	begin := 0
+	end := len(startedArray) - 1
+	arrayForSort := s.CopyArr(startedArray)
+
+	depthLimit := 2 * math.Floor(math.Log2(float64(end)-float64(begin)))
+	return s.IntroSortUtil(arrayForSort, begin, end, int(depthLimit))
+}
+
+func (s *Sorts) IntroSortUtil(copiedArray []int, begin int, end int, depthLimit int) []int {
+	size := end - begin
+
+	if size < 16 {
+		//InsertionSort
+		for i := 1; i < len(copiedArray); i++ {
+			key := copiedArray[i]
+			j := i - 1
+			for j >= 0 && copiedArray[j] > key {
+				copiedArray[j+1] = copiedArray[j]
+				j--
+			}
+			copiedArray[j+1] = key
+		}
+		return copiedArray
+	}
+
+	if depthLimit == 0 {
+		return HeapSort(copiedArray)
+	}
+
+	pivot := MedianOfThree(copiedArray, begin, begin+size/2, end)
+	copiedArray[pivot], copiedArray[end] = copiedArray[end], copiedArray[pivot]
+
+	partitionIndex := Partition(copiedArray, begin, end)
+	s.IntroSortUtil(copiedArray, begin, partitionIndex-1, depthLimit-1)
+	s.IntroSortUtil(copiedArray, partitionIndex+1, end, depthLimit-1)
+	return copiedArray
+}
+
+func MedianOfThree(startedArray []int, first int, second int, third int) int {
+	firstElement := startedArray[first]
+	secondElement := startedArray[second]
+	thirdElement := startedArray[third]
+
+	if firstElement <= secondElement && secondElement <= thirdElement {
+		return second
+	}
+	if thirdElement <= secondElement && secondElement <= firstElement {
+		return second
+	}
+	if secondElement <= firstElement && firstElement <= thirdElement {
+		return first
+	}
+	if thirdElement <= firstElement && firstElement <= secondElement {
+		return first
+	}
+	return third
+}
+
+func HeapSort(input []int) []int {
+	result := []int{}
+
+	mh := minheap.New(input)
+
+	for range input {
+		result = append(result, mh.ExtractMin())
+	}
+
+	return result
+}
+
+//This function takes last element as pivot, places
+//the pivot element at its correct position in sorted
+//array, and places all smaller (smaller than pivot)
+//to left of pivot and all greater elements to right
+//of pivot
+
+func Partition(copiedArray []int, low int, high int) int {
+	pivot := copiedArray[high]
+
+	i := low - 1
+
+	for j := low; j < high; j++ {
+		if copiedArray[j] <= pivot {
+			i++
+			copiedArray[i], copiedArray[j] = copiedArray[j], copiedArray[i]
+		}
+	}
+
+	copiedArray[i+1], copiedArray[high] = copiedArray[high], copiedArray[i+1]
+	return i + 1
 }
