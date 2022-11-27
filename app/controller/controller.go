@@ -2,12 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"html/template"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"sync"
@@ -30,12 +30,17 @@ type TimeOfSort struct {
 	TimeDuration float64 `json:"time"`
 }
 
+type Error struct {
+	Status int
+	Err    string
+}
+
 type service interface {
-	StartSorting(http.ResponseWriter, []string)
+	StartSorting([]string)
 	FillByRand(n int)
 	FillFromFile(path string) error
-	SetArrayByUserChoice(http.ResponseWriter, interface{}, []string)
-	GetSortsResultJSON() string
+	SetArrayByUserChoice(interface{}, []string) error
+	GetSortsResultJSON() (string, error)
 	GetStartedArray() []int
 	CleanService()
 	GetAvailableSorts() []string
@@ -49,9 +54,7 @@ func New(service service) *Controller {
 }
 
 func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
-	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	//здесь будет еще валидация
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	var input interface{}
 
@@ -60,20 +63,29 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 	} else if sizeRandArr := r.PostFormValue("sizeRandArr"); sizeRandArr != "" {
 		size, err := strconv.Atoi(sizeRandArr)
 		if err != nil {
-			log.Fatal(err)
+			WriteError(w, "app/templates/errorMenu.html", http.StatusBadRequest, err)
 			return
 		}
 		input = size
 	}
 
 	choicesOfSorts := r.PostForm["checkbox"]
-	ctr.Service.SetArrayByUserChoice(w, input, choicesOfSorts)
-
-	dataJSON := ctr.Service.GetSortsResultJSON()
-	var dataStruct map[string][]TimeOfSort
-	err := json.Unmarshal([]byte(dataJSON), &dataStruct)
+	err := ctr.Service.SetArrayByUserChoice(input, choicesOfSorts)
 	if err != nil {
-		log.Println(err)
+		WriteError(w, "app/templates/errorMenu.html", http.StatusBadRequest, err)
+		return
+	}
+
+	dataJSON, err := ctr.Service.GetSortsResultJSON()
+	if err != nil {
+		WriteError(w, "app/templates/errorMenu.html", http.StatusBadRequest, err)
+		return
+	}
+
+	var dataStruct map[string][]TimeOfSort
+	err = json.Unmarshal([]byte(dataJSON), &dataStruct)
+	if err != nil {
+		WriteError(w, "app/templates/errorMenu.html", http.StatusBadRequest, err)
 		return
 	}
 
@@ -84,38 +96,43 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 		TimesOfSorts:   dataStruct["Sorts"],
 	}
 
-	err = WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", result)
+	err = WriteHTML(w, "app/templates/choiceMenu.html", result)
 	if err != nil {
-		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+		WriteError(w, "app/templates/errorMenu.html", http.StatusInternalServerError, err)
+		return
 	}
 
-	CreateGraph("bar.html", result, choicesOfSorts)
-	err = WriteHTML(w, "bar.html", "bar.html", nil)
+	err = CreateGraph("bar.html", result, choicesOfSorts)
 	if err != nil {
-		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+		WriteError(w, "app/templates/errorMenu.html", http.StatusInternalServerError, err)
+		return
+	}
+
+	err = WriteHTML(w, "bar.html", nil)
+	if err != nil {
+		WriteError(w, "app/templates/errorMenu.html", http.StatusInternalServerError, err)
+		return
 	}
 
 	ctr.Service.CleanService()
-
 }
 
 func (ctr *Controller) GetSorts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	err := WriteHTML(w, "choiceMenu.html", "app/templates/choiceMenu.html", Times{
+	err := WriteHTML(w, "app/templates/choiceMenu.html", Times{
 		AvailableSorts: ctr.Service.GetAvailableSorts(),
 	})
 
 	if err != nil {
-		log.Println(fmt.Sprintf("Error in  writing html. %w", err))
+		WriteError(w, "app/templates/errorMenu.html", http.StatusInternalServerError, err)
+		return
 	}
 }
 
-func CreateGraph(path string, times Times, choicesOfSorts []string) {
-	// create a new bar instance
+func CreateGraph(path string, times Times, choicesOfSorts []string) error {
 	bar := charts.NewBar()
 
-	// Set global options
 	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
 		Title:    "Graph of time dependence on the type of sorting",
 		Subtitle: "This is fun to use!",
@@ -134,11 +151,18 @@ func CreateGraph(path string, times Times, choicesOfSorts []string) {
 
 	bar.SetXAxis(choicesOfSorts).
 		AddSeries("Times", items)
-	f, _ := os.Create(path)
-	_ = bar.Render(f)
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	err = bar.Render(f)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func WriteHTML(w http.ResponseWriter, name string, filename string, data interface{}) error {
+func WriteHTML(w http.ResponseWriter, filename string, data interface{}) error {
 	tmpl, err := template.ParseFiles(filename)
 	if err != nil {
 		//http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
@@ -149,4 +173,15 @@ func WriteHTML(w http.ResponseWriter, name string, filename string, data interfa
 		return err
 	}
 	return nil
+}
+
+func WriteError(w http.ResponseWriter, filename string, statusCode int, errTitle error) {
+	err := WriteHTML(w, filename, Error{
+		Status: statusCode,
+		Err:    errTitle.Error(),
+	})
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
 }

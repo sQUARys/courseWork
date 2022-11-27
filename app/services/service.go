@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -35,22 +34,30 @@ type Sorts interface {
 
 func New(s Sorts) *Service {
 	return &Service{
-		Numbers: []int{},
-		Sorts:   s,
+		Numbers:       []int{},
+		SortedNumbers: []int{},
+		Sorts:         s,
 	}
 }
 
-func (s *Service) SetArrayByUserChoice(w http.ResponseWriter, choice interface{}, choicesOfSorts []string) {
+func (s *Service) SetArrayByUserChoice(choice interface{}, choicesOfSorts []string) error {
+	var err error
 	switch choice.(type) {
 	case string:
-		s.FillFromFile(choice.(string))
+		err = s.FillFromFile(choice.(string))
 	case int:
 		s.FillByRand(choice.(int))
 	}
-	s.StartSorting(w, choicesOfSorts)
+	if err != nil {
+		return err
+	}
+
+	s.StartSorting(choicesOfSorts)
+
+	return nil
 }
 
-func (s *Service) StartSorting(w http.ResponseWriter, choicesOfSorts []string) {
+func (s *Service) StartSorting(choicesOfSorts []string) {
 	startedArray := s.Numbers
 
 	var wg sync.WaitGroup
@@ -136,7 +143,7 @@ func (s *Service) FillFromFile(path string) error {
 
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
@@ -159,23 +166,25 @@ func (s *Service) FillFromFile(path string) error {
 	return nil
 }
 
-func (s *Service) GetSortsResultJSON() string {
-	data, _ := json.Marshal(s.Sorts)
-	return string(data)
+func (s *Service) GetSortsResultJSON() (string, error) {
+	data, err := json.Marshal(s.Sorts)
+	return string(data), err
 }
 
 func (s *Service) GetStartedArray() []int {
 	return s.Numbers
 }
 
-func (s *Service) GetAvailableSorts() []string {
-	return s.Sorts.GetAvailableSorts()
-}
-
 func (s *Service) GetSortedArray() []int {
 	return s.SortedNumbers
 }
 
+func (s *Service) GetAvailableSorts() []string {
+	return s.Sorts.GetAvailableSorts()
+}
+
 func (s *Service) CleanService() {
 	s.Sorts = sorts.New()
+	s.Numbers = []int{}
+	s.SortedNumbers = []int{}
 }
