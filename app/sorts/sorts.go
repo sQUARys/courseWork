@@ -16,7 +16,7 @@ type CertainSort struct {
 	TypeOfSort string  `json:"type"`
 }
 
-var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell", "Intro"}
+var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell", "Intro", "Tim"}
 
 func New() *Sorts {
 	return &Sorts{
@@ -220,12 +220,102 @@ func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 	return arr
 }
 
+func (s *Sorts) TimSort(startedArray []int) []int {
+	startTime := time.Now()
+
+	n := len(startedArray)
+	minRun := CalcMinRun(n)
+	copiedArray := s.CopyArr(startedArray)
+
+	for start := 0; start < n; start += minRun {
+		end := math.Min(float64(start+minRun-1), float64(n-1))
+		//InsertionSort
+		for i := start; i < int(end); i++ {
+			key := copiedArray[i]
+			j := i - 1
+			for j >= 0 && copiedArray[j] > key {
+				copiedArray[j+1] = copiedArray[j]
+				j--
+			}
+			copiedArray[j+1] = key
+		}
+	}
+
+	size := minRun
+	for size < n {
+
+		for left := 0; left < n; left += 2 * size {
+			middle := math.Min(float64(n-1), float64(left+size-1))
+			right := math.Min(float64(left+2*size-1), float64(n-1))
+
+			if middle < right {
+				MergeParts(copiedArray, left, int(middle), int(right))
+			}
+		}
+		size *= 2
+	}
+
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Tim"}
+	s.Sorts = append(s.Sorts, result)
+
+	return copiedArray
+}
+
+func MergeParts(copiedArray []int, l int, m int, r int) {
+	len1, len2 := m-l+1, r-m
+	left, right := []int{}, []int{}
+	for i := 0; i < len1; i++ {
+		left = append(left, copiedArray[l+i])
+	}
+	for i := 0; i < len2; i++ {
+		right = append(right, copiedArray[m+1+i])
+	}
+	i, j, k := 0, 0, 0
+
+	for i < len1 && j < len2 {
+		if left[i] <= right[j] {
+			copiedArray[k] = left[i]
+			i++
+		} else {
+			copiedArray[k] = right[j]
+			j++
+		}
+		k++
+	}
+
+	for i < len1 {
+		copiedArray[k] = left[i]
+		k++
+		i++
+	}
+	for j < len2 {
+		copiedArray[k] = right[j]
+		k++
+		j++
+	}
+}
+
+func CalcMinRun(n int) int {
+	r := 0
+	for n >= 32 {
+		r |= n & 1
+		n >>= 1
+	}
+	return n + r
+}
+
 func (s *Sorts) IntroSort(startedArray []int) []int {
+	startTime := time.Now()
+
 	begin := 0
 	end := len(startedArray) - 1
 	arrayForSort := s.CopyArr(startedArray)
 
 	depthLimit := 2 * math.Floor(math.Log2(float64(end)-float64(begin)))
+
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Intro"}
+	s.Sorts = append(s.Sorts, result)
+
 	return s.IntroSortUtil(arrayForSort, begin, end, int(depthLimit))
 }
 

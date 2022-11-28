@@ -30,6 +30,7 @@ type Sorts interface {
 	ShellSort([]int) []int
 	CopyArr([]int) []int
 	GetAvailableSorts() []string
+	TimSort(startedArray []int) []int
 	IntroSort(startedArray []int) []int
 }
 
@@ -124,6 +125,11 @@ loop:
 				}
 			case "Intro":
 				sortedArray := s.Sorts.IntroSort(startedArray)
+				if len(s.SortedNumbers) == 0 {
+					s.SortedNumbers = sortedArray
+				}
+			case "Tim":
+				sortedArray := s.Sorts.TimSort(startedArray)
 				if len(s.SortedNumbers) == 0 {
 					s.SortedNumbers = sortedArray
 				}
