@@ -3,11 +3,14 @@ package services
 import (
 	"courseWork/app/sorts"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
+	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,6 +37,8 @@ type Sorts interface {
 	IntroSort(startedArray []int) []int
 }
 
+//error not going to startsorting
+
 func New(s Sorts) *Service {
 	return &Service{
 		Numbers:       []int{},
@@ -44,109 +49,108 @@ func New(s Sorts) *Service {
 
 func (s *Service) SetArrayByUserChoice(choice interface{}, choicesOfSorts []string) error {
 	var err error
-	switch choice.(type) {
+	switch choice.(type) { //depending on the type we choose how to add elem into array
 	case string:
-		err = s.FillFromFile(choice.(string))
+		err = s.FillFromFile(choice.(string)) // get data from file
 	case int:
-		s.FillByRand(choice.(int))
+		s.FillByRand(choice.(int)) // set random value into array
 	}
 	if err != nil {
 		return err
 	}
 
-	s.StartSorting(choicesOfSorts)
+	err = s.StartSorting(choicesOfSorts)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (s *Service) StartSorting(choicesOfSorts []string) {
-	startedArray := s.Numbers
+func (s *Service) StartSorting(choicesOfSorts []string) error {
+	startedArray := s.Numbers // get started array
 
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup // add waitgroup for goroutines
 
-	typeOfSortChan := make(chan string)
-	doneChan := make(chan interface{})
+	typeOfSortChan := make(chan string) // channel of types of sorts
+	doneChan := make(chan interface{})  // channel for closing all
+	errorChan := make(chan error, 1)    // channel for error
 
-	wg.Add(1)
+	wg.Add(1) // add count of new goroutines
 	go func() {
 		defer wg.Done()
-		for _, b := range choicesOfSorts {
-			typeOfSortChan <- b
+		for _, b := range choicesOfSorts { // go for all sorts which user chose
+			typeOfSortChan <- b // write into chan
 		}
-		doneChan <- true
+		doneChan <- true // when we end to write into type chan we end our for loop
 	}()
 
-	wg.Add(1)
+	var err error
+
+	wg.Add(1) // add count of new goroutines
 	go func() {
 		defer wg.Done()
-		s.WorkerOfSort(startedArray, typeOfSortChan, doneChan)
+		err = s.WorkerOfSort(&wg, startedArray, typeOfSortChan, doneChan, errorChan) // start worker which will start all sorts
 	}()
 
-	wg.Wait()
-	close(typeOfSortChan)
+	wg.Wait() // wait closing of all goroutines
+	if err != nil {
+		return err
+	}
+
+	close(typeOfSortChan) //close all channels
 	close(doneChan)
+	close(errorChan)
+	return nil
 }
 
-func (s *Service) WorkerOfSort(startedArray []int, sortsCh chan string, doneCh chan interface{}) {
+func (s *Service) WorkerOfSort(wg *sync.WaitGroup, startedArray []int, sortsCh chan string, doneCh chan interface{}, errCh chan error) error {
 loop:
-	for {
+	for { // start infinite for loop
 		select {
-		case v := <-sortsCh:
-			switch v {
-			case "Bubble":
-				sortedArray := s.Sorts.BubbleSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
+		case errFromCh := <-errCh:
+			return errFromCh
+		case v := <-sortsCh: // read from chan
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				var sortedArray []int
+				switch v { // start sorts
+				case "Bubble":
+					sortedArray = s.Sorts.BubbleSort(startedArray)
+				case "Quick":
+					sortedArray = s.Sorts.Quicksort(startedArray)
+				case "Insertion":
+					sortedArray = s.Sorts.InsertionSort(startedArray)
+				case "Selection":
+					sortedArray = s.Sorts.SelectionSort(startedArray)
+				case "Merge":
+					sortedArray = s.Sorts.MergeSort(startedArray)
+				case "Shell":
+					sortedArray = s.Sorts.ShellSort(startedArray)
+				case "Intro":
+					sortedArray = s.Sorts.IntroSort(startedArray)
+				case "Tim":
+					sortedArray = s.Sorts.TimSort(startedArray)
+				}
+				if len(s.SortedNumbers) == 0 && sort.IntsAreSorted(sortedArray) {
 					s.SortedNumbers = sortedArray
 				}
-			case "Quick":
-				sortedArray := s.Sorts.Quicksort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Insertion":
-				sortedArray := s.Sorts.InsertionSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Selection":
-				sortedArray := s.Sorts.SelectionSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Merge":
-				sortedArray := s.Sorts.MergeSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Shell":
-				sortedArray := s.Sorts.ShellSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Intro":
-				sortedArray := s.Sorts.IntroSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			case "Tim":
-				sortedArray := s.Sorts.TimSort(startedArray)
-				if len(s.SortedNumbers) == 0 {
-					s.SortedNumbers = sortedArray
-				}
-			}
-			fmt.Println(fmt.Sprintf("%s sorts done succesful", v))
+				s.CheckError(sortedArray, v, errCh)
+				fmt.Println(fmt.Sprintf("%s sorts end", v))
+			}()
 		case <-doneCh:
 			break loop
 		}
 	}
-
+	return nil
 }
 
 func (s *Service) FillByRand(n int) {
 	s.Numbers = []int{}
 	for i := 0; i < n; i++ {
 		rand.Seed(time.Now().UnixNano())
-		s.Numbers = append(s.Numbers, rand.Intn(n))
+		s.Numbers = append(s.Numbers, rand.Intn(10*n))
 	}
 }
 
@@ -199,4 +203,11 @@ func (s *Service) CleanService() {
 	s.Sorts = sorts.New()
 	s.Numbers = []int{}
 	s.SortedNumbers = []int{}
+}
+
+func (s *Service) CheckError(sortedArray []int, typeOfSort string, errCh chan error) {
+	fmt.Println(reflect.DeepEqual(s.SortedNumbers, sortedArray), typeOfSort)
+	if s.SortedNumbers != nil && reflect.DeepEqual(s.SortedNumbers, sortedArray) == false {
+		errCh <- errors.New(fmt.Sprintf("%s Sorted array not equal with memory array", typeOfSort))
+	}
 }

@@ -16,7 +16,23 @@ type CertainSort struct {
 	TypeOfSort string  `json:"type"`
 }
 
-var AvailableSort = []string{"Bubble", "Quick", "Selection", "Insertion", "Merge", "Shell", "Intro", "Tim"}
+//комментарии
+//отчет
+
+var AvailableSort = []string{
+	"Bubble",
+	"Quick",
+	"Selection",
+	"Insertion",
+	"Merge",
+	"Shell",
+	"Intro",
+	"Tim",
+}
+
+//QUICK SORT NOT WORKING
+//Insertion Sort not working
+//Tim Sort not working
 
 func New() *Sorts {
 	return &Sorts{
@@ -24,7 +40,12 @@ func New() *Sorts {
 	}
 }
 
-func (s *Sorts) GetAvailableSorts() []string {
+func (s *Sorts) AddSort(startTime time.Time, typeOfSort string) {
+	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: typeOfSort}
+	s.Sorts = append(s.Sorts, result)
+}
+
+func (s *Sorts) GetAvailableSorts() []string { // getter of all avialable sorts
 	return AvailableSort
 }
 
@@ -37,15 +58,15 @@ func (s *Sorts) CopyArr(n []int) []int { // special func to delete dependencies 
 func (s *Sorts) BubbleSort(startedArray []int) []int {
 	arrayForSort := s.CopyArr(startedArray) // array for sort
 
-	startTime := time.Now()
+	startTime := time.Now() // start time ticker
 
-	var sorted = false
+	var sorted = false // checker of sorted arr
 
 	for !sorted {
 		sorted = true
-		i := 0
+		i := 0 // start index counter
 		for i < len(arrayForSort)-1 {
-			if arrayForSort[i] > arrayForSort[i+1] {
+			if arrayForSort[i] > arrayForSort[i+1] { // sorting
 				arrayForSort[i], arrayForSort[i+1] = arrayForSort[i+1], arrayForSort[i] //swap two elements
 				sorted = false                                                          // arr not sorted
 			}
@@ -53,32 +74,33 @@ func (s *Sorts) BubbleSort(startedArray []int) []int {
 		}
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Bubble"}
-	s.Sorts = append(s.Sorts, result)
+	s.AddSort(startTime, "Bubble") // just add sort info for html
+
 	return arrayForSort
 }
 
 func (s *Sorts) InsertionSort(startedArray []int) []int {
-	arrayForSort := s.CopyArr(startedArray)
+	arrayForSort := s.CopyArr(startedArray) // delete dependencies
 
-	startTime := time.Now()
+	startTime := time.Now() // start ticker
 
 	for i := 1; i < len(arrayForSort); i++ {
-		key := arrayForSort[i]
-		j := i - 1
-		for j >= 0 && arrayForSort[j] > key {
-			arrayForSort[j+1] = arrayForSort[j]
-			j--
+		key := arrayForSort[i]                // set element to var
+		j := i - 1                            // end
+		for j >= 0 && arrayForSort[j] > key { // sort after j-element
+			arrayForSort[j+1] = arrayForSort[j] //replace more value then key
+			j--                                 // decrease j
 		}
-		arrayForSort[j+1] = key
+		arrayForSort[j+1] = key // write key value to index before which we compare
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Insertion"}
-	s.Sorts = append(s.Sorts, result)
+	s.AddSort(startTime, "Insertion") // just add sort info for html
+
 	return arrayForSort
 }
 
 func (s *Sorts) SelectionSort(startedArray []int) []int {
+	//исправить
 	arrayForSort := s.CopyArr(startedArray)
 
 	startTime := time.Now()
@@ -105,16 +127,15 @@ func (s *Sorts) SelectionSort(startedArray []int) []int {
 		i++
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Selection"}
-	s.Sorts = append(s.Sorts, result)
+	s.AddSort(startTime, "Selection")
+
 	return arrayForSort
 }
 
 func (s *Sorts) Quicksort(startedArray []int) []int {
-	startTime := time.Now()
-	sortedArray := s.QuickSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Quick"}
-	s.Sorts = append(s.Sorts, result)
+	startTime := time.Now()                           // start ticker
+	sortedArray := s.QuickSortRecursive(startedArray) // start recursion part of quicksort
+	s.AddSort(startTime, "Quick")                     // add sort
 	return sortedArray
 }
 
@@ -147,19 +168,19 @@ func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
 }
 
 func (s *Sorts) MergeSort(startedArray []int) []int {
-	startTime := time.Now()
-	sortedArray := s.MergeSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Merge"}
-	s.Sorts = append(s.Sorts, result)
+	startTime := time.Now()                           // start ticker
+	sortedArray := s.MergeSortRecursive(startedArray) // start recursion part of mergesort
+	s.AddSort(startTime, "Merge")
 	return sortedArray
 }
 
 func (s *Sorts) MergeSortRecursive(startedArray []int) []int {
-	slice := s.CopyArr(startedArray)
+	slice := s.CopyArr(startedArray) // delete dependencies
 
 	if len(slice) < 2 {
 		return slice
 	}
+
 	mid := (len(slice)) / 2 // get middle part of array
 
 	return MergeArrays(s.MergeSortRecursive(slice[:mid]), s.MergeSortRecursive(slice[mid:])) // we just merge two part of array: before and after middle index
@@ -188,10 +209,9 @@ func MergeArrays(left []int, right []int) []int {
 }
 
 func (s *Sorts) ShellSort(startedArray []int) []int {
-	startTime := time.Now()
-	sortedArray := s.ShellSortRecursive(startedArray)
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Shell"}
-	s.Sorts = append(s.Sorts, result)
+	startTime := time.Now()                           // start ticker
+	sortedArray := s.ShellSortRecursive(startedArray) // start recursion part of ShellSort
+	s.AddSort(startTime, "Shell")
 	return sortedArray
 }
 
@@ -221,10 +241,10 @@ func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 }
 
 func (s *Sorts) TimSort(startedArray []int) []int {
-	startTime := time.Now()
+	startTime := time.Now() // start ticker
 
-	n := len(startedArray)
-	minRun := CalcMinRun(n)
+	n := len(startedArray)  // get len of arr
+	minRun := CalcMinRun(n) // calculate minimal running
 	copiedArray := s.CopyArr(startedArray)
 
 	for start := 0; start < n; start += minRun {
@@ -255,8 +275,7 @@ func (s *Sorts) TimSort(startedArray []int) []int {
 		size *= 2
 	}
 
-	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Tim"}
-	s.Sorts = append(s.Sorts, result)
+	s.AddSort(startTime, "Tim")
 
 	return copiedArray
 }
@@ -337,19 +356,19 @@ func (s *Sorts) IntroSortUtil(copiedArray []int, begin int, end int, depthLimit 
 	}
 
 	if depthLimit == 0 {
-		return HeapSort(copiedArray)
+		return HeapSort(copiedArray) // Heap sort
 	}
 
-	pivot := MedianOfThree(copiedArray, begin, begin+size/2, end)
-	copiedArray[pivot], copiedArray[end] = copiedArray[end], copiedArray[pivot]
+	pivot := MedianOfThree(copiedArray, begin, begin+size/2, end)               // get median of three elem
+	copiedArray[pivot], copiedArray[end] = copiedArray[end], copiedArray[pivot] // swap end and pivot
 
-	partitionIndex := Partition(copiedArray, begin, end)
+	partitionIndex := Partition(copiedArray, begin, end) // index
 	s.IntroSortUtil(copiedArray, begin, partitionIndex-1, depthLimit-1)
 	s.IntroSortUtil(copiedArray, partitionIndex+1, end, depthLimit-1)
 	return copiedArray
 }
 
-func MedianOfThree(startedArray []int, first int, second int, third int) int {
+func MedianOfThree(startedArray []int, first int, second int, third int) int { // getting middle of three
 	firstElement := startedArray[first]
 	secondElement := startedArray[second]
 	thirdElement := startedArray[third]
@@ -369,7 +388,7 @@ func MedianOfThree(startedArray []int, first int, second int, third int) int {
 	return third
 }
 
-func HeapSort(input []int) []int {
+func HeapSort(input []int) []int { // sort by heap
 	result := []int{}
 
 	mh := minheap.New(input)
@@ -381,24 +400,18 @@ func HeapSort(input []int) []int {
 	return result
 }
 
-//This function takes last element as pivot, places
-//the pivot element at its correct position in sorted
-//array, and places all smaller (smaller than pivot)
-//to left of pivot and all greater elements to right
-//of pivot
-
 func Partition(copiedArray []int, low int, high int) int {
-	pivot := copiedArray[high]
+	pivot := copiedArray[high] // get high value
 
 	i := low - 1
 
-	for j := low; j < high; j++ {
+	for j := low; j < high; j++ { // go for all elements in part
 		if copiedArray[j] <= pivot {
 			i++
-			copiedArray[i], copiedArray[j] = copiedArray[j], copiedArray[i]
+			copiedArray[i], copiedArray[j] = copiedArray[j], copiedArray[i] // swap elements
 		}
 	}
 
-	copiedArray[i+1], copiedArray[high] = copiedArray[high], copiedArray[i+1]
+	copiedArray[i+1], copiedArray[high] = copiedArray[high], copiedArray[i+1] // swap elements
 	return i + 1
 }

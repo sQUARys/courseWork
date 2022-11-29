@@ -36,7 +36,7 @@ type Error struct {
 }
 
 type service interface {
-	StartSorting([]string)
+	StartSorting([]string) error
 	FillByRand(n int)
 	FillFromFile(path string) error
 	SetArrayByUserChoice(interface{}, []string) error
