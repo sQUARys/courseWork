@@ -113,8 +113,6 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "app/templates/errorMenu.html", http.StatusInternalServerError, err)
 		return
 	}
-
-	ctr.Service.CleanService()
 }
 
 func (ctr *Controller) GetSorts(w http.ResponseWriter, r *http.Request) {

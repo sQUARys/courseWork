@@ -22,6 +22,7 @@ type Service struct {
 	*sync.RWMutex
 	Numbers       []int
 	SortedNumbers []int
+	Errors        []error
 }
 
 type Sorts interface {
@@ -48,6 +49,8 @@ func New(s Sorts) *Service {
 }
 
 func (s *Service) SetArrayByUserChoice(choice interface{}, choicesOfSorts []string) error {
+	s.CleanService()
+
 	var err error
 	switch choice.(type) { //depending on the type we choose how to add elem into array
 	case string:
@@ -72,9 +75,9 @@ func (s *Service) StartSorting(choicesOfSorts []string) error {
 
 	var wg sync.WaitGroup // add waitgroup for goroutines
 
-	typeOfSortChan := make(chan string) // channel of types of sorts
-	doneChan := make(chan interface{})  // channel for closing all
-	errorChan := make(chan error, 1)    // channel for error
+	typeOfSortChan := make(chan string)              // channel of types of sorts
+	doneChan := make(chan interface{})               // channel for closing all
+	errorChan := make(chan error, len(startedArray)) // channel for error
 
 	wg.Add(1) // add count of new goroutines
 	go func() {
@@ -82,34 +85,34 @@ func (s *Service) StartSorting(choicesOfSorts []string) error {
 		for _, b := range choicesOfSorts { // go for all sorts which user chose
 			typeOfSortChan <- b // write into chan
 		}
-		doneChan <- true // when we end to write into type chan we end our for loop
+		doneChan <- "done" // when we end to write into type chan we end our for loop
 	}()
-
-	var err error
 
 	wg.Add(1) // add count of new goroutines
 	go func() {
 		defer wg.Done()
-		err = s.WorkerOfSort(&wg, startedArray, typeOfSortChan, doneChan, errorChan) // start worker which will start all sorts
+		s.WorkerOfSort(&wg, startedArray, typeOfSortChan, doneChan) // start worker which will start all sorts
 	}()
 
 	wg.Wait() // wait closing of all goroutines
-	if err != nil {
-		return err
+
+	for i := 0; i < len(s.Errors); i++ {
+		if s.Errors[i] != nil {
+			return s.Errors[i]
+		}
 	}
 
 	close(typeOfSortChan) //close all channels
 	close(doneChan)
 	close(errorChan)
+
 	return nil
 }
 
-func (s *Service) WorkerOfSort(wg *sync.WaitGroup, startedArray []int, sortsCh chan string, doneCh chan interface{}, errCh chan error) error {
+func (s *Service) WorkerOfSort(wg *sync.WaitGroup, startedArray []int, sortsCh chan string, doneCh chan interface{}) {
 loop:
 	for { // start infinite for loop
 		select {
-		case errFromCh := <-errCh:
-			return errFromCh
 		case v := <-sortsCh: // read from chan
 			wg.Add(1)
 			go func() {
@@ -136,14 +139,13 @@ loop:
 				if len(s.SortedNumbers) == 0 && sort.IntsAreSorted(sortedArray) {
 					s.SortedNumbers = sortedArray
 				}
-				s.CheckError(sortedArray, v, errCh)
+				s.Errors = append(s.Errors, s.CheckError(sortedArray, v))
 				fmt.Println(fmt.Sprintf("%s sorts end", v))
 			}()
 		case <-doneCh:
 			break loop
 		}
 	}
-	return nil
 }
 
 func (s *Service) FillByRand(n int) {
@@ -203,11 +205,13 @@ func (s *Service) CleanService() {
 	s.Sorts = sorts.New()
 	s.Numbers = []int{}
 	s.SortedNumbers = []int{}
+	s.Errors = []error{}
 }
 
-func (s *Service) CheckError(sortedArray []int, typeOfSort string, errCh chan error) {
-	fmt.Println(reflect.DeepEqual(s.SortedNumbers, sortedArray), typeOfSort)
+func (s *Service) CheckError(sortedArray []int, typeOfSort string) error {
+	fmt.Println(s.SortedNumbers, sortedArray, reflect.DeepEqual(s.SortedNumbers, sortedArray), typeOfSort)
 	if s.SortedNumbers != nil && reflect.DeepEqual(s.SortedNumbers, sortedArray) == false {
-		errCh <- errors.New(fmt.Sprintf("%s Sorted array not equal with memory array", typeOfSort))
+		return errors.New(fmt.Sprintf("%s Sorted array not equal with memory array", typeOfSort))
 	}
+	return nil
 }
