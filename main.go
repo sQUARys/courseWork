@@ -11,21 +11,21 @@ import (
 )
 
 func main() {
-	sort := sorts.New()
-	service := services.New(sort)
+	sort := sorts.New()           // create sorts
+	service := services.New(sort) // create service
 
-	controller := controller.New(service)
-	router := routers.New(controller)
+	controller := controller.New(service) // create controller
+	router := routers.New(controller)     // create router
 
-	router.SetRoutes()
-	server := http.Server{
+	router.SetRoutes()     // set current routes
+	server := http.Server{ // create server
 		ReadTimeout:  50 * time.Second,
 		WriteTimeout: 50 * time.Second,
 		Addr:         ":8080",
 		Handler:      router.Router,
 	}
 
-	err := server.ListenAndServe()
+	err := server.ListenAndServe() // start server
 	if err != nil {
 		log.Println("Error in main : ", err)
 		return

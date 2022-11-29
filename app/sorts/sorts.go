@@ -3,7 +3,6 @@ package sorts
 import (
 	"github.com/dorin131/go-data-structures/minheap"
 	"math"
-	"math/rand"
 	"time"
 )
 
@@ -16,9 +15,6 @@ type CertainSort struct {
 	TypeOfSort string  `json:"type"`
 }
 
-//комментарии
-//отчет
-
 var AvailableSort = []string{
 	"Bubble",
 	"Quick",
@@ -29,10 +25,6 @@ var AvailableSort = []string{
 	"Intro",
 	"Tim",
 }
-
-//QUICK SORT NOT WORKING
-//Insertion Sort not working
-//Tim Sort not working
 
 func New() *Sorts {
 	return &Sorts{
@@ -85,13 +77,13 @@ func (s *Sorts) InsertionSort(startedArray []int) []int {
 	startTime := time.Now() // start ticker
 
 	for i := 1; i < len(arrayForSort); i++ {
-		key := arrayForSort[i]                // set element to var
-		j := i - 1                            // end
-		for j >= 0 && arrayForSort[j] > key { // sort after j-element
-			arrayForSort[j+1] = arrayForSort[j] //replace more value then key
-			j--                                 // decrease j
+		j := i
+		for j > 0 {
+			if arrayForSort[j-1] > arrayForSort[j] { // if more
+				arrayForSort[j-1], arrayForSort[j] = arrayForSort[j], arrayForSort[j-1] // swap
+			}
+			j = j - 1
 		}
-		arrayForSort[j+1] = key // write key value to index before which we compare
 	}
 
 	s.AddSort(startTime, "Insertion") // just add sort info for html
@@ -105,26 +97,14 @@ func (s *Sorts) SelectionSort(startedArray []int) []int {
 
 	startTime := time.Now()
 
-	i := 1
-
-	for i < len(arrayForSort)-1 {
-		j := i + 1
-		minIndex := i
-
-		if j < len(arrayForSort) { // find a min value
-			if arrayForSort[j] < arrayForSort[minIndex] {
-				minIndex = j
+	for i := 0; i < len(arrayForSort); i++ { // run by all array by i
+		var minIdx = i                           // minimal index
+		for j := i; j < len(arrayForSort); j++ { // run by all array by j
+			if arrayForSort[j] < arrayForSort[minIdx] {
+				minIdx = j
 			}
-			j++
 		}
-
-		if minIndex != i { // just start to swap values to the beginning of array
-			var temp = arrayForSort[i]
-			arrayForSort[i] = arrayForSort[minIndex]
-			arrayForSort[minIndex] = temp
-		}
-
-		i++
+		arrayForSort[i], arrayForSort[minIdx] = arrayForSort[minIdx], arrayForSort[i] // swap
 	}
 
 	s.AddSort(startTime, "Selection")
@@ -133,38 +113,22 @@ func (s *Sorts) SelectionSort(startedArray []int) []int {
 }
 
 func (s *Sorts) Quicksort(startedArray []int) []int {
-	startTime := time.Now()                           // start ticker
-	sortedArray := s.QuickSortRecursive(startedArray) // start recursion part of quicksort
-	s.AddSort(startTime, "Quick")                     // add sort
-	return sortedArray
+	startTime := time.Now() // start ticker
+	copiedArray := s.CopyArr(startedArray)
+	s.QuickSortRecursive(copiedArray, 0, len(copiedArray)-1)
+	s.AddSort(startTime, "Quick") // add sort
+	return copiedArray
 }
 
-func (s *Sorts) QuickSortRecursive(startedArray []int) []int {
-	a := s.CopyArr(startedArray)
+func (s *Sorts) QuickSortRecursive(copiedArray []int, low int, high int) []int {
+	if low < high {
+		var p int
+		p = Partition(copiedArray, low, high)
 
-	if len(a) < 2 {
-		return a
+		copiedArray = s.QuickSortRecursive(copiedArray, low, p-1)
+		copiedArray = s.QuickSortRecursive(copiedArray, p+1, high)
 	}
-
-	left, right := 0, len(a)-1 // set left and right side
-
-	pivot := rand.Int() % len(a) // set random index into array
-
-	a[pivot], a[right] = a[right], a[pivot] // swap right side and a random index
-
-	for i, _ := range a { // sorting a pivot's side of arr
-		if a[i] < a[right] {
-			a[left], a[i] = a[i], a[left]
-			left++
-		}
-	}
-
-	a[left], a[right] = a[right], a[left] // change sides of arr by place
-
-	s.QuickSortRecursive(a[:left])   // recursion for elements staying before left index
-	s.QuickSortRecursive(a[left+1:]) // recursion for elements staying after left index
-
-	return a
+	return copiedArray
 }
 
 func (s *Sorts) MergeSort(startedArray []int) []int {
@@ -250,14 +214,10 @@ func (s *Sorts) TimSort(startedArray []int) []int {
 	for start := 0; start < n; start += minRun {
 		end := math.Min(float64(start+minRun-1), float64(n-1))
 		//InsertionSort
-		for i := start; i < int(end); i++ {
-			key := copiedArray[i]
-			j := i - 1
-			for j >= 0 && copiedArray[j] > key {
-				copiedArray[j+1] = copiedArray[j]
-				j--
+		for i := start + 1; i < int(end)+1; i++ {
+			for j := i; j > start && copiedArray[j] < copiedArray[j-1]; j-- {
+				copiedArray[j], copiedArray[j-1] = copiedArray[j-1], copiedArray[j]
 			}
-			copiedArray[j+1] = key
 		}
 	}
 
@@ -281,15 +241,18 @@ func (s *Sorts) TimSort(startedArray []int) []int {
 }
 
 func MergeParts(copiedArray []int, l int, m int, r int) {
+	//merge(arr, left, mid, right)
+
 	len1, len2 := m-l+1, r-m
 	left, right := []int{}, []int{}
+
 	for i := 0; i < len1; i++ {
 		left = append(left, copiedArray[l+i])
 	}
 	for i := 0; i < len2; i++ {
 		right = append(right, copiedArray[m+1+i])
 	}
-	i, j, k := 0, 0, 0
+	i, j, k := 0, 0, l
 
 	for i < len1 && j < len2 {
 		if left[i] <= right[j] {
@@ -403,15 +366,15 @@ func HeapSort(input []int) []int { // sort by heap
 func Partition(copiedArray []int, low int, high int) int {
 	pivot := copiedArray[high] // get high value
 
-	i := low - 1
+	i := low
 
 	for j := low; j < high; j++ { // go for all elements in part
-		if copiedArray[j] <= pivot {
-			i++
+		if copiedArray[j] < pivot {
 			copiedArray[i], copiedArray[j] = copiedArray[j], copiedArray[i] // swap elements
+			i++
 		}
 	}
 
-	copiedArray[i+1], copiedArray[high] = copiedArray[high], copiedArray[i+1] // swap elements
-	return i + 1
+	copiedArray[i], copiedArray[high] = copiedArray[high], copiedArray[i] // swap elements
+	return i
 }

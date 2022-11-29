@@ -38,8 +38,6 @@ type Sorts interface {
 	IntroSort(startedArray []int) []int
 }
 
-//error not going to startsorting
-
 func New(s Sorts) *Service {
 	return &Service{
 		Numbers:       []int{},
@@ -52,6 +50,7 @@ func (s *Service) SetArrayByUserChoice(choice interface{}, choicesOfSorts []stri
 	s.CleanService()
 
 	var err error
+
 	switch choice.(type) { //depending on the type we choose how to add elem into array
 	case string:
 		err = s.FillFromFile(choice.(string)) // get data from file
@@ -75,9 +74,8 @@ func (s *Service) StartSorting(choicesOfSorts []string) error {
 
 	var wg sync.WaitGroup // add waitgroup for goroutines
 
-	typeOfSortChan := make(chan string)              // channel of types of sorts
-	doneChan := make(chan interface{})               // channel for closing all
-	errorChan := make(chan error, len(startedArray)) // channel for error
+	typeOfSortChan := make(chan string) // channel of types of sorts
+	doneChan := make(chan interface{})  // channel for closing all
 
 	wg.Add(1) // add count of new goroutines
 	go func() {
@@ -104,7 +102,6 @@ func (s *Service) StartSorting(choicesOfSorts []string) error {
 
 	close(typeOfSortChan) //close all channels
 	close(doneChan)
-	close(errorChan)
 
 	return nil
 }
@@ -209,7 +206,7 @@ func (s *Service) CleanService() {
 }
 
 func (s *Service) CheckError(sortedArray []int, typeOfSort string) error {
-	fmt.Println(s.SortedNumbers, sortedArray, reflect.DeepEqual(s.SortedNumbers, sortedArray), typeOfSort)
+	fmt.Println("Is similar : ", reflect.DeepEqual(s.SortedNumbers, sortedArray), typeOfSort)
 	if s.SortedNumbers != nil && reflect.DeepEqual(s.SortedNumbers, sortedArray) == false {
 		return errors.New(fmt.Sprintf("%s Sorted array not equal with memory array", typeOfSort))
 	}
