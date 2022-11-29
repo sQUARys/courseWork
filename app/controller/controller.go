@@ -68,6 +68,9 @@ func (ctr *Controller) SendUserChoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		input = size
+	} else {
+		WriteError(w, "app/templates/errorMenu.html", http.StatusBadRequest, errors.New("You need to fill one of inputs")) // write error
+		return
 	}
 
 	choicesOfSorts := r.PostForm["checkbox"] // check which checkbox chose
