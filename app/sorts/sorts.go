@@ -287,10 +287,12 @@ func (s *Sorts) IntroSort(startedArray []int) []int {
 
 	depthLimit := 2 * math.Floor(math.Log2(float64(end)-float64(begin)))
 
+	sortedArray := s.IntroSortUtil(arrayForSort, begin, end, int(depthLimit))
+
 	result := CertainSort{Time: time.Since(startTime).Seconds(), TypeOfSort: "Intro"}
 	s.Sorts = append(s.Sorts, result)
 
-	return s.IntroSortUtil(arrayForSort, begin, end, int(depthLimit))
+	return sortedArray
 }
 
 func (s *Sorts) IntroSortUtil(copiedArray []int, begin int, end int, depthLimit int) []int {
