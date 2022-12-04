@@ -56,13 +56,11 @@ func (s *Sorts) BubbleSort(startedArray []int) []int {
 
 	for !sorted {
 		sorted = true
-		i := 0 // start index counter
-		for i < len(arrayForSort)-1 {
+		for i := 0; i < len(arrayForSort)-1; i++ {
 			if arrayForSort[i] > arrayForSort[i+1] { // sorting
 				arrayForSort[i], arrayForSort[i+1] = arrayForSort[i+1], arrayForSort[i] //swap two elements
 				sorted = false                                                          // arr not sorted
 			}
-			i++ // add index
 		}
 	}
 
@@ -77,12 +75,10 @@ func (s *Sorts) InsertionSort(startedArray []int) []int {
 	startTime := time.Now() // start ticker
 
 	for i := 1; i < len(arrayForSort); i++ {
-		j := i
-		for j > 0 {
+		for j := i; j > 0; j-- {
 			if arrayForSort[j-1] > arrayForSort[j] { // if more
 				arrayForSort[j-1], arrayForSort[j] = arrayForSort[j], arrayForSort[j-1] // swap
 			}
-			j = j - 1
 		}
 	}
 
@@ -92,14 +88,13 @@ func (s *Sorts) InsertionSort(startedArray []int) []int {
 }
 
 func (s *Sorts) SelectionSort(startedArray []int) []int {
-	//исправить
 	arrayForSort := s.CopyArr(startedArray)
 
 	startTime := time.Now()
 
 	for i := 0; i < len(arrayForSort); i++ { // run by all array by i
 		var minIdx = i                           // minimal index
-		for j := i; j < len(arrayForSort); j++ { // run by all array by j
+		for j := i; j < len(arrayForSort); j++ { // run by array by j
 			if arrayForSort[j] < arrayForSort[minIdx] {
 				minIdx = j
 			}
@@ -122,8 +117,7 @@ func (s *Sorts) Quicksort(startedArray []int) []int {
 
 func (s *Sorts) QuickSortRecursive(copiedArray []int, low int, high int) []int {
 	if low < high {
-		var p int
-		p = Partition(copiedArray, low, high)
+		p := Partition(copiedArray, low, high)
 
 		copiedArray = s.QuickSortRecursive(copiedArray, low, p-1)
 		copiedArray = s.QuickSortRecursive(copiedArray, p+1, high)
@@ -185,9 +179,9 @@ func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 	gap := len(arr) / 2
 
 	for gap > 0 {
-		for j := gap; j < len(arr); { // check arr from left to right
+		for j := gap; j < len(arr); j++ { // check arr from left to right
 		loop: // just name of i-loop for beautiful stopping
-			for i := j - gap; i >= 0; { // j keep help in maintain gap value
+			for i := j - gap; i >= 0; i -= gap { // j keep help in maintain gap value
 				//If value on right side is already greater than left side value
 				// We don't do swap else we swap
 				if arr[i+gap] > arr[i] {
@@ -195,9 +189,7 @@ func (s *Sorts) ShellSortRecursive(startedArray []int) []int {
 				} else {
 					arr[i+gap], arr[i] = arr[i], arr[i+gap] // swap two value
 				}
-				i -= gap // To check left side also if the element present is greater than current element
 			}
-			j++
 		}
 		gap /= 2
 	}
